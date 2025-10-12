@@ -688,7 +688,8 @@
     let isDraggingPiece = false;
 
     window.addEventListener("load", () => {
-      const savedBg = localStorage.getItem("boardBackgroundData");
+      // ИСПРАВЛЕНО: Уникальный ключ для игры "Сила Рода"
+      const savedBg = localStorage.getItem("boardBackgroundData_SilaRoda");
       const board = document.getElementById("gameBoard");
       if (savedBg) {
         board.style.backgroundImage = `url('${savedBg}')`;
@@ -697,7 +698,8 @@
         const img = new Image();
         img.onload = function () {
           board.style.backgroundImage = `url('${defaultBoard}')`;
-          localStorage.setItem("boardBackgroundData", defaultBoard);
+          // ИСПРАВЛЕНО: Уникальный ключ для игры "Сила Рода"
+          localStorage.setItem("boardBackgroundData_SilaRoda", defaultBoard);
         };
         img.onerror = function () {
           board.style.backgroundImage =
