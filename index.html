@@ -418,27 +418,20 @@
       background-repeat: no-repeat;
     }
 
+    /* Скрытая зона старта - невидима, но используется для позиционирования */
     .start-zone {
       position: absolute;
       top: 20px;
       left: 20px;
-      padding: 12px;
-      background: rgba(255, 255, 255, 0.2);
-      border: 2.5px dashed rgba(255, 255, 255, 0.5);
-      border-radius: 10px;
       min-width: 180px;
       min-height: 85px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: bold;
-      color: white;
-      font-size: 16px;
+      /* Убираем все визуальные стили */
+      opacity: 0;
+      pointer-events: none;
     }
 
     .piece {
       position: absolute;
-      /* Уменьшаем базовые размеры, чтобы при масштабе они не были слишком большими */
       min-width: 70px;
       height: 50px;
       border-radius: 25px;
@@ -455,9 +448,7 @@
       z-index: 10;
       padding: 0 12px;
       white-space: nowrap;
-      /* Плавное изменение яркости при наведении вместо transform */
       transition: filter 0.2s ease;
-      /* Важно: transform-origin для компенсации масштаба */
       transform-origin: center center;
     }
 
@@ -589,7 +580,7 @@
 
         <h3>Размещение фишек</h3>
         <ul>
-          <li>После запуска игры все фишки с именами игроков появляются в зоне <strong>"СТАРТ"</strong></li>
+          <li>После запуска игры все фишки с именами игроков появляются в левом верхнем углу игрового поля</li>
           <li>Каждый игрок имеет свой уникальный цвет</li>
         </ul>
 
@@ -640,11 +631,6 @@
           <li>Ведущий управляет фишками всех игроков</li>
         </ul>
 
-        <h2>🔒 Конфиденциальность</h2>
-        <ul>
-          <li>Мы <strong>не собираем</strong> никаких персональных данных</li>
-        </ul>
-
         <h2>👥 Формат игры</h2>
         <p>Игра предназначена для использования <strong>только с ведущим:</strong></p>
         <ul>
@@ -671,7 +657,7 @@
     <div id="gameViewport">
       <div id="gameBoardWrapper">
         <div id="gameBoard">
-          <div class="start-zone" id="startZone">СТАРТ</div>
+          <div class="start-zone" id="startZone"></div>
         </div>
       </div>
     </div>
@@ -792,8 +778,6 @@
       board.querySelectorAll(".piece").forEach((p) => p.remove());
       
       // Создаем плашки с оптимизированными расстояниями
-      // Фишки добавляются в #gameBoard, но их размер компенсируется
-      // через transform: scale(1/zoom), чтобы они оставались постоянного размера
       players.forEach((pl, i) => {
         const piece = document.createElement("div");
         piece.className = `piece color-${i}`;
@@ -816,11 +800,11 @@
       });
     }
 
-    // Управление масштабированием
+    // Управление масштабированием (изменено на 300% максимум)
     function zoomIn() {
-      if (currentZoom < 2.0) {
+      if (currentZoom < 3.0) {
         const oldZoom = currentZoom;
-        currentZoom = Math.min(2.0, currentZoom + 0.1);
+        currentZoom = Math.min(3.0, currentZoom + 0.1);
         
         // Сохраняем центральную точку при масштабировании
         const zoomRatio = currentZoom / oldZoom;
@@ -859,8 +843,6 @@
 
     function updateTransform() {
       const wrapper = document.getElementById("gameBoardWrapper");
-      // Центрированное масштабирование: translate(-50%, -50%) для центрирования, 
-      // затем применяем панорамирование и масштаб
       wrapper.style.transform = `translate(calc(-50% + ${panX}px), calc(-50% + ${panY}px)) scale(${currentZoom})`;
       document.getElementById("zoomLevel").textContent = Math.round(currentZoom * 100) + "%";
       
@@ -877,9 +859,6 @@
       } else {
         board.style.imageRendering = "auto";
       }
-      
-      // Логирование для отладки
-      console.log(`Масштаб: ${Math.round(currentZoom * 100)}% | Фишки: ${Math.round(100 / currentZoom)}% | Позиция: (${Math.round(panX)}, ${Math.round(panY)})`);
     }
 
     function saveZoomState() {
@@ -888,7 +867,7 @@
       sessionStorage.setItem("gamePanY", panY);
     }
 
-    // Масштабирование колесиком мыши
+    // Масштабирование колесиком мыши (изменено на 300% максимум)
     function initWheelZoom() {
       const viewport = document.getElementById("gameViewport");
       const wrapper = document.getElementById("gameBoardWrapper");
@@ -902,15 +881,14 @@
         wrapper.classList.add("no-transition");
         
         const rect = viewport.getBoundingClientRect();
-        const mouseX = e.clientX - rect.left - rect.width / 2;  // Относительно центра
+        const mouseX = e.clientX - rect.left - rect.width / 2;
         const mouseY = e.clientY - rect.top - rect.height / 2;
         
         const delta = e.deltaY > 0 ? -0.1 : 0.1;
         const oldZoom = currentZoom;
-        currentZoom = Math.max(1.0, Math.min(2.0, currentZoom + delta));
+        currentZoom = Math.max(1.0, Math.min(3.0, currentZoom + delta));
         
         if (currentZoom !== oldZoom) {
-          // Масштабирование относительно позиции курсора от центра
           const zoomRatio = currentZoom / oldZoom;
           panX = mouseX - (mouseX - panX) * zoomRatio;
           panY = mouseY - (mouseY - panY) * zoomRatio;
@@ -920,7 +898,6 @@
           saveZoomState();
         }
         
-        // Включаем transition обратно через небольшую задержку
         setTimeout(() => wrapper.classList.remove("no-transition"), 50);
       }, { passive: false });
     }
@@ -999,19 +976,18 @@
       const viewportWidth = viewport.offsetWidth;
       const viewportHeight = viewport.offsetHeight;
       
-      // Ограничения для центрированной системы
       if (scaledWidth > viewportWidth) {
         const maxPanX = (scaledWidth - viewportWidth) / 2;
         panX = Math.max(-maxPanX, Math.min(maxPanX, panX));
       } else {
-        panX = 0; // Центрируем если поле меньше viewport
+        panX = 0;
       }
       
       if (scaledHeight > viewportHeight) {
         const maxPanY = (scaledHeight - viewportHeight) / 2;
         panY = Math.max(-maxPanY, Math.min(maxPanY, panY));
       } else {
-        panY = 0; // Центрируем если поле меньше viewport
+        panY = 0;
       }
     }
 
@@ -1032,7 +1008,6 @@
       const clientX = e.type === "mousedown" ? e.clientX : e.touches[0].clientX;
       const clientY = e.type === "mousedown" ? e.clientY : e.touches[0].clientY;
       
-      // Учитываем масштаб при расчете offset
       dragOffset.x = (clientX - rect.left) / currentZoom - draggedPiece.offsetLeft;
       dragOffset.y = (clientY - rect.top) / currentZoom - draggedPiece.offsetTop;
       
@@ -1055,11 +1030,9 @@
       const clientX = e.type === "mousemove" ? e.clientX : e.touches[0].clientX;
       const clientY = e.type === "mousemove" ? e.clientY : e.touches[0].clientY;
       
-      // Учитываем масштаб при позиционировании
       let x = (clientX - rect.left) / currentZoom - dragOffset.x;
       let y = (clientY - rect.top) / currentZoom - dragOffset.y;
       
-      // Ограничение движения в пределах поля
       x = Math.max(0, Math.min(x, board.offsetWidth - draggedPiece.offsetWidth));
       y = Math.max(0, Math.min(y, board.offsetHeight - draggedPiece.offsetHeight));
       
